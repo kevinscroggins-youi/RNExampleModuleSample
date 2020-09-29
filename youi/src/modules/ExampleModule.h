@@ -2,8 +2,9 @@
 #define _EXAMPLE_MODULE_H_
 
 #include <youireact/NativeModule.h>
+#include <youireact/modules/EventEmitter.h>
 
-class YI_RN_MODULE(ExampleModule)
+class YI_RN_MODULE(ExampleModule, yi::react::EventEmitterModule)
 {
 public:
     ExampleModule();

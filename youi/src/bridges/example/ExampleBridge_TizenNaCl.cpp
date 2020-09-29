@@ -19,7 +19,33 @@ static CYIWebMessagingBridge::FutureResponse CallInstanceFunction(yi::rapidjson:
     return CYIWebBridgeLocator::GetWebMessagingBridge()->CallInstanceFunctionWithArgs(std::move(message), JAVASCRIPT_FILE_LOADER_CLASS_NAME, JAVASCRIPT_FILE_LOADER_INSTANCE_ACCESSOR_NAME, functionName, std::move(functionArgumentsValue), yi::rapidjson::Value(yi::rapidjson::kArrayType), pMessageSent);
 }
 
-ExampleBridge_TizenNaCl::ExampleBridge_TizenNaCl() = default;
+static uint64_t RegisterEventHandler(const CYIString &eventName, CYIWebMessagingBridge::EventCallback &&eventCallback)
+{
+    return CYIWebBridgeLocator::GetWebMessagingBridge()->RegisterEventHandler(JAVASCRIPT_FILE_LOADER_CLASS_NAME, eventName, std::move(eventCallback));
+}
+
+static void UnregisterEventHandler(uint64_t &eventHandlerId)
+{
+    CYIWebBridgeLocator::GetWebMessagingBridge()->UnregisterEventHandler(eventHandlerId);
+    eventHandlerId = 0;
+}
+
+ExampleBridge_TizenNaCl::ExampleBridge_TizenNaCl()
+    : m_sequentialNumberEventHandlerId(0)
+{
+    static constexpr const char *SEQUENTIAL_NUMBER_EVENT_NAME = "sequentialNumber";
+
+    m_sequentialNumberEventHandlerId = RegisterEventHandler(SEQUENTIAL_NUMBER_EVENT_NAME, [this](yi::rapidjson::Document &&event) {
+        if (event.HasMember(CYIWebMessagingBridge::EVENT_DATA_ATTRIBUTE_NAME) && event[CYIWebMessagingBridge::EVENT_DATA_ATTRIBUTE_NAME].IsInt())
+        {
+            SequentialNumber.Emit(event[CYIWebMessagingBridge::EVENT_DATA_ATTRIBUTE_NAME].GetInt());
+        }
+        else
+        {
+            YI_LOGE(LOG_TAG, "Invalid '%s' event data. JSON string for event: '%s'.", SEQUENTIAL_NUMBER_EVENT_NAME, CYIRapidJSONUtility::CreateStringFromValue(event).GetData());
+        }
+    });
+}
 
 ExampleBridge_TizenNaCl::~ExampleBridge_TizenNaCl() = default;
 

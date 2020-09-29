@@ -18,6 +18,9 @@ public:
     virtual bool SetNickname(const CYIString &nickname) override;
     virtual CYIString GetIPAddress() override;
     virtual std::vector<CYIString> GetLoadedScripts() override;
+
+private:
+    uint64_t m_sequentialNumberEventHandlerId;
 };
 
 #endif // _EXAMPLE_BRIDGE_TIZEN_NACL_H_

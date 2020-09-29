@@ -10,10 +10,25 @@
 
 using namespace yi::react;
 
-YI_RN_INSTANTIATE_MODULE(ExampleModule);
+YI_RN_INSTANTIATE_MODULE(ExampleModule, EventEmitterModule);
 YI_RN_REGISTER_MODULE(ExampleModule);
 
-ExampleModule::ExampleModule() = default;
+static constexpr const char *SEQUENTIAL_NUMBER_EVENT_NAME = "sequentialNumber";
+
+ExampleModule::ExampleModule()
+{
+    SetSupportedEvents
+    ({
+       SEQUENTIAL_NUMBER_EVENT_NAME
+    });
+
+    if (auto pBridge = ExampleBridgeLocator::GetExampleBridge())
+    {
+        pBridge->SequentialNumber.Connect([this](int32_t sequentialNumber) {
+            EmitEvent(SEQUENTIAL_NUMBER_EVENT_NAME, {ToDynamic(sequentialNumber)});
+        });
+    }
+}
 
 ExampleModule::~ExampleModule() = default;
 

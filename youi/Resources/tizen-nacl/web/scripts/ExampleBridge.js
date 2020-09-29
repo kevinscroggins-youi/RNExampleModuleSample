@@ -9,6 +9,8 @@ function ExampleBridge() {
     var self = this;
 
     self.nickname = "";
+    self.sequentialNumberEventIdCounter = 1;
+    self.sequentialNumberEventTimeoutId = undefined;
 }
 
 ExampleBridge.getInstance = function getInstance() {
@@ -23,6 +25,8 @@ ExampleBridge.prototype.init = function init() {
     var self = this;
 
     self.nickname = "Example Bridge";
+
+    self.startSequentialNumberEventLoop();
 };
 
 ExampleBridge.prototype.getNickname = function getNickname() {
@@ -102,4 +106,38 @@ ExampleBridge.prototype.getIPAddressHelper = function getIPAddressHelper(callbac
     });
 
     request.send();
+};
+
+ExampleBridge.prototype.sendEvent = function sendEvent(eventName, data) {
+    var self = this;
+
+    return CYIMessaging.sendEvent({
+        context: ExampleBridge.name,
+        name: eventName,
+        data: data
+    });
+};
+
+ExampleBridge.prototype.startSequentialNumberEventLoop = function startSequentialNumberEventLoop() {
+    var self = this;
+
+    if(CYIUtilities.isValid(self.sequentialNumberEventTimeoutId)) {
+        return;
+    }
+
+    self.sequentialNumberEventTimeoutId = setTimeout(function() {
+        self.sendEvent("sequentialNumber", self.sequentialNumberEventIdCounter++);
+
+        self.sequentialNumberEventTimeoutId = undefined;
+        self.startSequentialNumberEventLoop();
+    }, Math.floor((Math.random() * 9000) + 1000));
+};
+
+ExampleBridge.prototype.stopSequentialNumberEventLoop = function stopSequentialNumberEventLoop() {
+    var self = this;
+
+    if(CYIUtilities.isValid(self.sequentialNumberEventTimeoutId)) {
+        clearTimeout(self.sequentialNumberEventTimeoutId);
+        self.sequentialNumberEventTimeoutId = undefined;
+    }
 };

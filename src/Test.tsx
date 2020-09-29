@@ -5,9 +5,7 @@ import {
   Text, StyleSheet
 } from "react-native";
 
-import { NativeModules } from "react-native";
-
-const { Example } = NativeModules;
+import Example from "./modules/Example";
 
 type Props = { };
 
@@ -15,6 +13,7 @@ type State = {
   nickname: string;
   ipAddress: string;
   loadedScripts: string[];
+  sequentialNumber: number;
 };
 
 export default class Test extends PureComponent<Props, State> {
@@ -24,13 +23,22 @@ export default class Test extends PureComponent<Props, State> {
     this.state = {
       nickname: "",
       ipAddress: "",
-      loadedScripts: []
+      loadedScripts: [],
+      sequentialNumber: 0
     };
   }
 
   async componentDidMount() {
     try {
-      const nickname = await Example?.getNickname() || "";
+      Example.addEventListener("sequentialNumber", (sequentialNumber: number) => {
+        console.log(`Sequential Number Event #${sequentialNumber}!`);
+
+        this.setState({
+          sequentialNumber: sequentialNumber
+        })
+      });
+
+      const nickname = await Example.getNickname() || "";
 
       console.log("Default Nickname: " + nickname);
 
@@ -38,9 +46,9 @@ export default class Test extends PureComponent<Props, State> {
         nickname: nickname
       });
 
-      await Example?.setNickname("Awesome Bridge");
+      await Example.setNickname("Awesome Bridge");
 
-      const newNickname = await Example?.getNickname() || "";
+      const newNickname = await Example.getNickname() || "";
 
       console.log("New Nickname: " + newNickname);
 
@@ -48,7 +56,7 @@ export default class Test extends PureComponent<Props, State> {
         nickname: newNickname
       });
 
-      const ipAddress = await Example?.getIPAddress() || "";
+      const ipAddress = await Example.getIPAddress() || "";
 
       console.log("IP Address: " + ipAddress);
 
@@ -56,7 +64,7 @@ export default class Test extends PureComponent<Props, State> {
         ipAddress: ipAddress
       });
 
-      const loadedScripts = await Example?.getLoadedScripts() || [];
+      const loadedScripts = await Example.getLoadedScripts() || [];
 
       this.setState({
         loadedScripts: loadedScripts
@@ -92,6 +100,7 @@ export default class Test extends PureComponent<Props, State> {
     const {
       nickname,
       ipAddress,
+      sequentialNumber,
       loadedScripts
     } = this.state;
 
@@ -99,6 +108,7 @@ export default class Test extends PureComponent<Props, State> {
       <View style={styles.container}>
         <Text style={styles.text}>Nickname: {nickname}</Text>
         <Text style={styles.text}>IP Address: {ipAddress}</Text>
+        <Text style={styles.text}>Current Sequential Number: {sequentialNumber}</Text>
         <Text style={styles.text}>Loaded Scripts: {loadedScripts.length}</Text>
         { this.renderLoadedScripts() }
       </View>
